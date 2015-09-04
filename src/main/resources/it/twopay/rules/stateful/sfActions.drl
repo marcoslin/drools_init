@@ -1,0 +1,55 @@
+package it.twopay.entity;
+
+// Simple Test
+rule "Rule: action-build"
+when
+	$logic: Logic(state == "build")
+then
+	$logic.log.info("### Rule: action-build");
+	$logic.addAction("build-result");
+end
+
+
+/*
+Cascading Test - call should kick off answer.  Cascading should not happen here
+as it is missing modify
+*/
+rule "Rule: action-call"
+when
+	$logic: Logic(state == "call")
+then
+	$logic.log.info("### Rule: action-call");
+	$logic.addAction("call-result");
+	$logic.setState("answer");
+end
+
+rule "Rule: action-answer"
+when
+	$logic: Logic(state == "answer")
+then
+	$logic.log.info("### Rule: action-answer");
+	$logic.addAction("answer-result");
+end
+
+
+/*
+Cascading Test - ping should kick off pong.  Cascading should work
+*/
+rule "Rule: action-ping"
+when
+	$logic: Logic(state == "ping")
+then
+	$logic.log.info("### Rule: action-ping");
+	$logic.addAction("ping-result");
+	modify($logic) {
+		setState("pong");
+	};
+end
+
+rule "Rule: action-pong"
+when
+	$logic: Logic(state == "pong")
+then
+	$logic.log.info("### Rule: action-pong");
+	$logic.addAction("pong-result");
+end

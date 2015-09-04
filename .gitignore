@@ -1,0 +1,8 @@
+# Java files
+target/
+
+# IDE Files
+.classpath
+.project
+.settings/
+
