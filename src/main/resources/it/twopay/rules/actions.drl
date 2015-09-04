@@ -41,6 +41,7 @@ when
 then
 	$logic.log.info("### Rule: action-ping");
 	$logic.addAction("ping-result");
+	// $logic.setState("pong");
 	modify($logic) {
 		setState("pong");
 	};

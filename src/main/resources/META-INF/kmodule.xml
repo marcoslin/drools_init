@@ -2,12 +2,13 @@
 <kmodule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xmlns="http://jboss.org/kie/6.0.0/kmodule">
 
-	<kbase name="StatefulKB" packages="it.twopay.rules.stateful">
+	<kbase name="StatefulKB" packages="it.twopay.rules">
 	    <ksession name="StatefulKS"/>
 	</kbase>
-	
-	<kbase name="StatelessKB" packages="it.twopay.rules.stateless">
-	    <ksession name="StatelessKS"/>
+
+	<kbase name="StatelessKB" packages="it.twopay.rules">
+	    <ksession name="StatelessKS" type="stateless"/>
 	</kbase>
+
 
 </kmodule>

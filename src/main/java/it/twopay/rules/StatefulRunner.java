@@ -4,28 +4,35 @@ import org.kie.api.runtime.KieSession;
 
 public class StatefulRunner extends Runner {
 	private final String SESSION_NAME="StatefulKS";
-	private KieSession ksession;
-	
-	public StatefulRunner() {
-		super();
-		ksession = kc.newKieSession(SESSION_NAME);
+	private int firedRulesCount;
+		
+	private void insertObjects(KieSession ksession) {
+    	for (Object object : this.objects) {
+    		ksession.insert(object);
+    	}
 	}
 	
-    public void insert(Object object) {
-        ksession.insert(object);
-    }
-
-    public int fire() {
-        int fired = ksession.fireAllRules();
-        //TODO use name of class that uses that method
-        log.info("*** Fired " + fired + " rules");
-        return fired;
-
-    }
-
-    public void dispose() {
-        ksession.dispose();
-        ksession = kc.newKieSession(SESSION_NAME);
-    }
+	private void fireRules(KieSession ksession) {
+		firedRulesCount = ksession.fireAllRules();
+    	log.info("*** Fired " + firedRulesCount + " rules");
+	}
 	
+	private void cleanUp(KieSession ksession) {
+        ksession.dispose();
+	}
+	
+    @Override
+    public void process() {
+    	KieSession ksession = kc.newKieSession(SESSION_NAME);
+    	
+    	insertObjects(ksession);
+    	fireRules(ksession);
+    	cleanUp(ksession);
+
+    }
+
+	public int getFiredRulesCount() {
+		return firedRulesCount;
+	}
+
 }

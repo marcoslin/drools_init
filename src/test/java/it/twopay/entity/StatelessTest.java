@@ -5,21 +5,20 @@ import org.junit.Test;
 import static org.junit.Assert.assertThat;
 import static org.hamcrest.core.Is.is;
 
-import it.twopay.rules.StatefulRunner;
+import it.twopay.rules.StatelessRunner;
 
-public class StatefulTest {
+public class StatelessTest {
 	
 	@Test
 	public void testSimple() {
 		Logic logic = new Logic("Logic");
 		logic.setState("build");
 		
-		StatefulRunner runner = new StatefulRunner();
+		StatelessRunner runner = new StatelessRunner();
 		
 		runner.insert(logic);
 		runner.process();
 		
-		assertThat(runner.getFiredRulesCount(), is(1));
 		assertThat(logic.getActions(), is(Arrays.asList("build-result")));
 	}
 	
@@ -28,12 +27,11 @@ public class StatefulTest {
 		Logic logic = new Logic("Logic");
 		logic.setState("call");
 		
-		StatefulRunner runner = new StatefulRunner();
+		StatelessRunner runner = new StatelessRunner();
 		
 		runner.insert(logic);
 		runner.process();
 		
-		assertThat(runner.getFiredRulesCount(), is(1));
 		assertThat(logic.getActions(), is(Arrays.asList("call-result")));
 	}
 	
@@ -42,12 +40,11 @@ public class StatefulTest {
 		Logic logic = new Logic("Logic");
 		logic.setState("ping");
 		
-		StatefulRunner runner = new StatefulRunner();
+		StatelessRunner runner = new StatelessRunner();
 		
 		runner.insert(logic);
 		runner.process();
 		
-		assertThat(runner.getFiredRulesCount(), is(2));
 		assertThat(logic.getActions(), is(Arrays.asList("ping-result", "pong-result")));
 	}
 	
