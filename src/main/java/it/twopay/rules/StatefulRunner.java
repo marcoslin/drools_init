@@ -6,9 +6,13 @@ public class StatefulRunner extends Runner {
 	private final String SESSION_NAME="StatefulKS";
 	private int firedRulesCount;
 	
+	public StatefulRunner(String session) {
+		super(session);
+	}
+
 	private KieSession startSession() {
 		firedRulesCount = 0;
-		return kc.newKieSession(SESSION_NAME);
+		return kc.newKieSession(this.session);
 	}
 	
 	private void insertObjects(KieSession ksession) {

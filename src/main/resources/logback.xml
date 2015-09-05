@@ -12,6 +12,7 @@
   <logger name="org.drools" level="debug"/>
   <logger name="it.twopay.rules.Runner" level="debug"/>
   <logger name="it.twopay.entity.Logic" level="debug"/>
+  <logger name="it.twopay.entity.Car" level="debug"/>
   
   <root level="warn">
     <appender-ref ref="consoleAppender" />

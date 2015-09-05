@@ -11,12 +11,14 @@ import org.slf4j.LoggerFactory;
 abstract public class Runner {
 	public static Logger log = LoggerFactory.getLogger("it.twopay.rules.Runner");
 
+	protected String session;
     protected KieContainer kc;
     protected List<Object> objects;
 
-    public Runner() {
+    public Runner(String session) {
         kc = KieServices.Factory.get().getKieClasspathContainer();
         objects = new ArrayList<>();
+        this.session = session;
     }
 
     public void insert(Object object) {

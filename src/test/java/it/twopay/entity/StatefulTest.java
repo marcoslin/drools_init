@@ -14,7 +14,7 @@ public class StatefulTest {
 		Logic logic = new Logic("Logic");
 		logic.setState("build");
 		
-		StatefulRunner runner = new StatefulRunner();
+		StatefulRunner runner = new StatefulRunner("StatefulKS");
 		
 		runner.insert(logic);
 		runner.process();
@@ -28,7 +28,7 @@ public class StatefulTest {
 		Logic logic = new Logic("Logic");
 		logic.setState("call");
 		
-		StatefulRunner runner = new StatefulRunner();
+		StatefulRunner runner = new StatefulRunner("StatefulKS");
 		
 		runner.insert(logic);
 		runner.process();
@@ -42,7 +42,7 @@ public class StatefulTest {
 		Logic logic = new Logic("Logic");
 		logic.setState("ping");
 		
-		StatefulRunner runner = new StatefulRunner();
+		StatefulRunner runner = new StatefulRunner("StatefulKS");
 		
 		runner.insert(logic);
 		runner.process();
