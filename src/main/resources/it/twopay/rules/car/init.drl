@@ -1,0 +1,28 @@
+package it.twopay.entity;
+
+import java.util.Arrays;
+
+// Pre Test
+rule "Rule: precheck"
+when
+	$car: Car(
+		actions contains Car.Actions.CHECK_MIRROR
+		&& actions contains Car.Actions.RELEASE_PARKING_BRAKE
+		&& actions contains Car.Actions.FASTEN_SEATBELT
+		&& state == "init"
+	)
+then
+	$car.log.info("### Rule: precheck");
+	modify($car) {
+		setState("allow-start");
+	}
+end
+
+// Start the car
+rule "Rule: start car"
+when
+	$car: Car( state == "allow-start" )
+then
+	$car.log.info("### Rule: start car");
+	$car.perform(Car.Actions.IGNITION);
+end

@@ -8,6 +8,8 @@ import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import it.twopay.rules.StatelessRunner;
+
 public class Car {
 	public static Logger log = LoggerFactory.getLogger("it.twopay.entity.Car");
 	
@@ -25,6 +27,9 @@ public class Car {
 		private Actions(String action) {
 			this.action = action;
 		}
+		public String getAction() {
+			return action;
+		}
 		@Override 
         public String toString(){ 
             return action; 
@@ -37,6 +42,33 @@ public class Car {
 		private Integer gear;
 		private Gears(Integer gear) {
 			this.gear = gear;
+		}
+		public int getValue() {
+			return gear;
+		}
+		public Gears getByValue(int gear) {
+			Gears result = null;
+			switch (gear) {
+			case 1:
+				result = GEAR_1;
+				break;
+			case 2:
+				result = GEAR_2;
+				break;
+			case 3:
+				result = GEAR_3;
+				break;
+			case 4:
+				result = GEAR_4;
+				break;
+			case 5:
+				result = GEAR_5;
+				break;
+			case 6:
+				result = GEAR_6;
+				break;
+			}
+			return result;
 		}
 		@Override 
         public String toString(){ 
@@ -53,7 +85,9 @@ public class Car {
 	private Gears gear = null;
 	private boolean running = false;
 	private double rpm = 0;
-	
+	private String state = "init";
+	private int stateCount = 0;
+
 	private void setup_gear_ratio() {
 		gearRatio = new HashMap<>();
 		
@@ -96,11 +130,36 @@ public class Car {
 		addAction(action);
 	}
 	
+	public void upShift() {
+		if (running) {
+			int currentGear = gear.getValue();
+			if (currentGear < Gears.GEAR_6.getValue()) {
+				gear = gear.getByValue(++currentGear);
+				log.debug("Up shit to gear " + gear);
+			}
+		}
+	}
+	
+	public void downShift() {
+		if (running) {
+			int currentGear = gear.getValue();
+			if (currentGear > Gears.GEAR_1.getValue()) {
+				gear = gear.getByValue(--currentGear);
+				log.debug("Down shit to gear " + gear);
+			}
+		}
+	}
+	
+	public void process() {
+		StatelessRunner runner = new StatelessRunner("CarKS");
+		runner.insert(this);
+		runner.process();
+	}
+	
 	public void addDelayAction(Actions action) {
 		// Action to be performed after END_STRIP
 		delayedActions.add(action);
 	}
-
 	
 	// Property Methods
 	public double getSpeed(Gears gear, double rpm) {
@@ -131,6 +190,10 @@ public class Car {
 			rpm = 0;
 		}
 	}
+	
+	public boolean isRunning() {
+		return running;
+	}
 
 	public double getRpm() {
 		return rpm;
@@ -152,5 +215,23 @@ public class Car {
 		return delayedActions;
 	}
 
+	public String getState() {
+		return state;
+	}
+
+	public void setState(String state) {
+		if (state == this.state) {
+			stateCount++;
+		} else {
+			stateCount = 1;
+		}
+		this.state = state;
+	}
+
+	public int getStateCount() {
+		return stateCount;
+	}
+
+	
 	
 }

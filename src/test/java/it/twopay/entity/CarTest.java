@@ -80,4 +80,60 @@ public class CarTest {
 		// Check action list
 		assertThat(car.getActions(), contains(Car.Actions.IGNITION, Car.Actions.TURN_OFF));
 	}
+	
+	@Test
+	public void testGear() {
+		Car car = new Car();
+		car.perform(Car.Actions.IGNITION);
+		
+		// Starting gear should be 1
+		assertThat(car.getGear(), is(Car.Gears.GEAR_1));
+		
+		// Down shift should have no effect
+		car.downShift();
+		assertThat(car.getGear(), is(Car.Gears.GEAR_1));
+		
+		// Up shift 5 times
+		for (int i=2; i <= 6; i++ ) {
+			car.upShift();
+			// car.log.info("Checking gear " + car.getGear() + ": " + i);
+			assertThat(car.getGear().getValue(), is(i));
+		}
+		
+		// Up shift should have no effect
+		car.upShift();
+		assertThat(car.getGear(), is(Car.Gears.GEAR_6));
+		
+		// Down shift 5 times
+		for (int i=5; i > 0; i-- ) {
+			car.downShift();
+			assertThat(car.getGear().getValue(), is(i));
+		}
+	}
+	
+	@Test
+	public void testState() {
+		Car car = new Car();
+		
+		assertThat(car.getState(), is("init"));
+		assertThat(car.getStateCount(), is(0));
+		
+		// Set state
+		car.setState("started");
+		assertThat(car.getState(), is("started"));
+		assertThat(car.getStateCount(), is(1));
+		
+		// Set state 4 times
+		for (int i=2; i < 6; i++ ) {
+			car.setState("started");
+			// car.log.info("Checking gear " + car.getGear() + ": " + i);
+			assertThat(car.getStateCount(), is(i));
+		}
+		
+		// Set next state
+		car.setState("ended");
+		assertThat(car.getState(), is("ended"));
+		assertThat(car.getStateCount(), is(1));
+	}
+		
 }
