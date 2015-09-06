@@ -6,9 +6,7 @@ Set the car to running state if .perform called with START_TRIP
 rule "Rule: start car"
 ruleflow-group "operate"
 when
-	$car: Car(
-		state == "allow-start"
-	)
+	$car: Car( state == "allow-start" )
 	$action: Car.Action(command == CarCommands.START_TRIP) from $car.actions
 then
 	$car.log.info("### Rule: start car");
@@ -17,3 +15,44 @@ then
 		setState("running")
 	}
 end
+
+/*
+Shift Gear 
+*/
+rule "Rule: up shift"
+ruleflow-group "operate"
+when
+	$car: Car(
+		state == "running"
+		&& (
+			gear == null
+			|| (rpm > 3000.0 && gear.getValue() < CarGears.GEAR_6.getValue())
+		) 
+	)
+then
+	$car.log.info("### Rule: up shift");
+	modify($car) {
+		upShift(),
+		setRpm(1000)
+	}
+end
+
+/*
+Accelerate the car to the 6th Gear 
+*/
+rule "Rule: accelerate car"
+ruleflow-group "operate"
+when
+	$car: Car(
+		state == "running"
+		&& gear != null
+		&& gear.getValue() < CarGears.GEAR_6.getValue()
+	)
+then
+	$car.log.info("### Rule: accelerate car from speed "+ $car.getSpeed());
+	modify($car) {
+		accelerate()
+	}
+end
+
+

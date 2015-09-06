@@ -142,6 +142,15 @@ public class Car {
 			return rpm / ratio;
 		}
 	}
+	public double getRpm(CarGears gear, double speed) {
+		if (gear == null) {
+			return 0.0;
+		} else {
+			double ratio = gearRatio.get(gear);
+			return speed * ratio;
+		}
+	}
+	
 	public double getSpeed() {
 		return getSpeed(gear, rpm);
 	}

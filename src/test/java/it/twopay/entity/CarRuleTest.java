@@ -1,18 +1,14 @@
 package it.twopay.entity;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Test;
 
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.hamcrest.Matchers.*;
 
 public class CarRuleTest {
 	
 	@Test
-	public void testRunning() {
+	public void testOperation() {
 		// Perform all action needed to start a car
 		Car car = new Car();
 		
@@ -29,6 +25,7 @@ public class CarRuleTest {
 		assertThat(car.isRunning(), is(true));
 		assertThat(car.getState(), is("running"));
 		assertThat(car.getCommands(), hasItem(CarCommands.FILL_UP_TANK));
+		assertThat(car.getGear(), is(CarGears.GEAR_6));
 	}
 	
 	@Test
