@@ -2,26 +2,69 @@ package it.twopay.entity;
 
 import java.util.Arrays;
 
-// Pre Test
-rule "Rule: precheck"
+/* =================
+PRE CHECK
+*/
+rule "Rule: precheck for FILL_UP_TANK"
+ruleflow-group "precheck"
 when
-	$car: Car(
-		actions contains Car.Actions.CHECK_MIRROR
-		&& actions contains Car.Actions.RELEASE_PARKING_BRAKE
-		&& actions contains Car.Actions.FASTEN_SEATBELT
-		&& state == "init"
-	)
+	$car: Car(actions contains Car.Actions.FILL_UP_TANK)
 then
-	$car.log.info("### Rule: precheck");
+	$car.log.info("### Rule: precheck for FILL_UP_TANK");
 	modify($car) {
 		setState("allow-start");
 	}
 end
 
-// Start the car
-rule "Rule: start car"
+
+/* =================
+OPERATION CHECK
+*/
+rule "Rule: opscheck for CHECK_MIRROR"
+ruleflow-group "opscheck"
 when
-	$car: Car( state == "allow-start" )
+	$car: Car( actions contains Car.Actions.CHECK_MIRROR )
+then
+	$car.log.info("### Rule: opscheck for CHECK_MIRROR");
+	modify($car) {
+		setState("allow-start");
+	}
+end
+
+rule "Rule: opscheck for RELEASE_PARKING_BRAKE"
+ruleflow-group "opscheck"
+when
+	$car: Car(actions contains Car.Actions.RELEASE_PARKING_BRAKE)
+then
+	$car.log.info("### Rule: opscheck for RELEASE_PARKING_BRAKE");
+	modify($car) {
+		setState("allow-start");
+	}
+end
+
+rule "Rule: opscheck for FASTEN_SEATBELT"
+ruleflow-group "opscheck"
+when
+	$car: Car(actions contains Car.Actions.FASTEN_SEATBELT)
+then
+	$car.log.info("### Rule: opscheck for FASTEN_SEATBELT");
+	modify($car) {
+		setState("allow-start");
+	}
+end
+
+
+
+/* =================
+START CAR
+*/
+rule "Rule: start car"
+ruleflow-group "operate"
+when
+	$car: Car(
+		state == "allow-start" &&
+		stateCount == 4
+	)
 then
 	$car.log.info("### Rule: start car");
 	$car.perform(Car.Actions.IGNITION);
