@@ -1,0 +1,19 @@
+package it.twopay.entity;
+
+/*
+Set the car to running state if .perform called with START_TRIP 
+*/
+rule "Rule: start car"
+ruleflow-group "operate"
+when
+	$car: Car(
+		state == "allow-start"
+	)
+	$action: Car.Action(command == CarCommands.START_TRIP) from $car.actions
+then
+	$car.log.info("### Rule: start car");
+	modify($car) {
+		perform(CarCommands.AUTO_IGNITION),
+		setState("running")
+	}
+end

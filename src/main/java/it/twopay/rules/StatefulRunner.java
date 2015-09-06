@@ -5,14 +5,15 @@ import org.kie.api.runtime.KieSession;
 public class StatefulRunner extends Runner {
 	private final String SESSION_NAME="StatefulKS";
 	private int firedRulesCount;
+	private KieSession ksession=null;
 	
 	public StatefulRunner(String session) {
 		super(session);
 	}
 
-	private KieSession startSession() {
+	private void startSession() {
 		firedRulesCount = 0;
-		return kc.newKieSession(this.session);
+		ksession = kc.newKieSession(this.session);
 	}
 	
 	private void insertObjects(KieSession ksession) {
@@ -28,18 +29,27 @@ public class StatefulRunner extends Runner {
 	
 	private void cleanUp(KieSession ksession) {
         ksession.dispose();
+        ksession = null;
+	}
+	
+	@Override
+	public void insert(Object object) {
+		super.insert(object);
+		if (ksession!=null) {
+			ksession.insert(object);
+		}
 	}
 	
     @Override
     public void process() {
-    	KieSession ksession = startSession();
+    	startSession();
     	insertObjects(ksession);
     	fireRules(ksession);
     	cleanUp(ksession);
     }
     
     public void process(String name) {
-    	KieSession ksession = startSession();
+    	startSession();
     	insertObjects(ksession);
     	ksession.startProcess(name);
     	fireRules(ksession);

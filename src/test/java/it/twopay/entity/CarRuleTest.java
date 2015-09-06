@@ -12,7 +12,7 @@ import static org.hamcrest.Matchers.*;
 public class CarRuleTest {
 	
 	@Test
-	public void testIgnition() {
+	public void testRunning() {
 		// Perform all action needed to start a car
 		Car car = new Car();
 		
@@ -27,9 +27,29 @@ public class CarRuleTest {
 		car.process();
 		
 		assertThat(car.isRunning(), is(true));
-		assertThat(car.getState(), is("allow-start"));
+		assertThat(car.getState(), is("running"));
 		assertThat(car.getCommands(), hasItem(CarCommands.FILL_UP_TANK));
 	}
+	
+	@Test
+	public void testAllowStart() {
+		// Allow the car to be at the allow-start state without actualy running
+		Car car = new Car();
+		
+		assertThat(car.isRunning(), is(false));
+		assertThat(car.getState(), is("init"));
+		
+		car.perform(CarCommands.CHECK_MIRROR);
+		car.perform(CarCommands.RELEASE_PARKING_BRAKE);
+		car.perform(CarCommands.FASTEN_SEATBELT);
+		car.perform(CarCommands.FILL_UP_TANK);
+		
+		car.process();
+		
+		assertThat(car.isRunning(), is(false));
+		assertThat(car.getState(), is("allow-start"));
+	}
+	
 	
 	@Test
 	public void testPreCheck() {
@@ -50,8 +70,8 @@ public class CarRuleTest {
 		car.process();
 		
 		assertThat(car.isRunning(), is(false));
-		assertThat(car.getState(), is("allow-start"));
-		assertThat(car.getErrors(), contains("CAN'T START CAR NO GAS"));
+		assertThat(car.getState(), is("checked"));
+		assertThat(car.isError(), is(false));
 	}
 	
 	

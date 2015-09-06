@@ -3,10 +3,12 @@ package it.twopay.entity;
 import java.util.Arrays;
 import java.util.Map;
 
-import it.twopay.entity.Car;
-
 /* =================
 PRE CHECK
+
+Set the state to "checked" if .perform has been called with all of:
+- CHECK_MIRROR, RELEASE_PARKING_BRAKE, FASTEN_SEATBELT
+
 */
 rule "Rule: pre check"
 ruleflow-group "precheck"
@@ -22,12 +24,15 @@ then
         setState("checked")
     }
     modify($car) {
-        setState("allow-start")
+        setState("checked")
     }
 end
 
 /* =================
-PRE CHECK
+Auto Operations
+
+If .perform called with START_TRIP, perform FILL_UP_TANK
+
 */
 rule "Rule: auto operations"
 ruleflow-group "auto-ops"
@@ -46,13 +51,13 @@ end
 
 
 /* =================
-Post Check
+Post Check -- Report error when applicable
 */
 rule "Rule: report precheck errors"
 ruleflow-group "postcheck"
 when
 	$car: Car(
-		state == "allow-start" &&
+		state == "checked" &&
 		stateCount != 3
 	)
 then
@@ -68,14 +73,25 @@ then
     }
 end
 
-rule "Rule: start car"
+/*
+Allow car start onloy if .perform was called with FILL_UP_TANK
+*/
+rule "Rule: allow the car to start"
 ruleflow-group "postcheck"
 when
 	$car: Car(
-		state == "allow-start" &&
+		state == "checked" &&
 		stateCount == 3
 	)
+	$action: Car.Action(command == CarCommands.FILL_UP_TANK && state == 'init') from $car.actions
 then
-	$car.log.info("### Rule: start car");
-	$car.perform(CarCommands.AUTO_IGNITION);
+	$car.log.info("### Rule: allow the car to start");
+	modify($action) {
+		setState("checked")
+	}
+	modify($car) {
+        setState("allow-start")
+    }
 end
+
+
