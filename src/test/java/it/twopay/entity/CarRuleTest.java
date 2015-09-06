@@ -8,7 +8,7 @@ import static org.hamcrest.Matchers.*;
 public class CarRuleTest {
 	
 	@Test
-	public void testOperation() {
+	public void testRunning() {
 		// Perform all action needed to start a car
 		Car car = new Car();
 		
@@ -29,8 +29,31 @@ public class CarRuleTest {
 	}
 	
 	@Test
+	public void testEndTrip() {
+		// Perform all action needed to start, travel and stop the car
+		Car car = new Car();
+		
+		assertThat(car.isRunning(), is(false));
+		assertThat(car.getState(), is("init"));
+		
+		car.perform(CarCommands.CHECK_MIRROR);
+		car.perform(CarCommands.RELEASE_PARKING_BRAKE);
+		car.perform(CarCommands.FASTEN_SEATBELT);
+		car.perform(CarCommands.START_TRIP);
+		car.perform(CarCommands.END_TRIP);
+		
+		car.process();
+		
+		assertThat(car.isRunning(), is(false));
+		assertThat(car.getState(), is("endtrip"));
+		assertThat(car.getCommands(), hasItems(CarCommands.PARK, CarCommands.APPLY_PARKING_BRAKE));
+		assertThat(car.getGear(), is(nullValue()));
+	}
+	
+	
+	@Test
 	public void testAllowStart() {
-		// Allow the car to be at the allow-start state without actualy running
+		// Allow the car to be at the allow-start state without actually running
 		Car car = new Car();
 		
 		assertThat(car.isRunning(), is(false));

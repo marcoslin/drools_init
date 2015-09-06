@@ -99,6 +99,7 @@ public class Car {
 			break;
 		}
 		addAction(command);
+		log.debug("Performing " + command.name());
 	}
 	
 	public void upShift() {

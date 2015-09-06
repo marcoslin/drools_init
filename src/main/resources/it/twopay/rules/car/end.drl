@@ -1,0 +1,22 @@
+package it.twopay.entity;
+
+/*
+End the trip 
+*/
+rule "Rule: stop car"
+ruleflow-group "endtrip"
+when
+	$car: Car( state == "running" && gear == CarGears.GEAR_6 )
+	$action: Car.Action(command == CarCommands.END_TRIP && state == "init") from $car.actions
+then
+	$car.log.info("### Rule: stop car");
+	modify($action) {
+		setState("checked")
+	}
+	modify($car) {
+		setState("endtrip"),
+		perform(CarCommands.TURN_OFF),
+		perform(CarCommands.PARK),
+		perform(CarCommands.APPLY_PARKING_BRAKE)
+	}
+end
