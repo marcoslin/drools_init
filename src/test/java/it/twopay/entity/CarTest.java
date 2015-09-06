@@ -28,6 +28,7 @@ public class CarTest {
 		Car car = new Car();
 		
 		List<GearSpeed> config = new ArrayList<>();
+		config.add(new GearSpeed(null, 1000, 0));
 		config.add(new GearSpeed(Car.Gears.GEAR_1, 1000, 10.61));
 		config.add(new GearSpeed(Car.Gears.GEAR_1, 3000, 31.83));
 		
@@ -59,15 +60,23 @@ public class CarTest {
 		// Car before ignition the speed should be zero
 		assertThat(car.getSpeed(), is(0.0));
 		
-		// Car after ignition speed should be greater than zero
+		// Car after ignition speed should zero
 		car.perform(Car.Actions.IGNITION);
-		double initSpeed = car.getSpeed();
-		assertThat(initSpeed, greaterThan(0.0));
+		double initialRpm = car.getRpm();
+		assertThat(initialRpm, is(1.0));
+		assertThat(car.getSpeed(), is(0.0));
 		
-		// Speed must increase after accelerate
+		// Accelerate without changing gear should change rpm but not speed
 		car.accelerate();
+		assertThat(car.getSpeed(), is(0.0));
+		double startingRpm = car.getRpm();
+		assertThat(startingRpm, greaterThan(initialRpm));
+		
+		// Up shift should produce speed without changing the rpm
+		car.upShift();
 		double speed = car.getSpeed();
-		assertThat(speed, greaterThan(initSpeed));
+		assertThat(speed, greaterThan(0.0));
+		assertThat(car.getRpm(), is(startingRpm));
 		
 		// Accelerate must continue to increase speed
 		car.accelerate();
@@ -76,31 +85,51 @@ public class CarTest {
 		// Turn off the car and speed back to zero
 		car.perform(Car.Actions.TURN_OFF);
 		assertThat(car.getSpeed(), is(0.0));
+		assertThat(car.getRpm(), is(1.0));
+		assertThat(car.getGear(), is(is(nullValue())));
 		
 		// Check action list
 		assertThat(car.getActions(), contains(Car.Actions.IGNITION, Car.Actions.TURN_OFF));
 	}
+	
+	
+	@Test
+	public void testEndTrip() {
+		Car car = new Car();
+		
+		// Car after ignition speed should be greater than zero
+		car.perform(Car.Actions.IGNITION);
+		double initSpeed = car.getSpeed();
+		car.accelerate();
+		
+		car.perform(Car.Actions.END_TRIP);
+		assertThat(car.getSpeed(), is(initSpeed));
+		assertThat(car.getRpm(), is(1.0));
+		assertThat(car.getGear(), is(is(nullValue())));
+		
+	}
+	
 	
 	@Test
 	public void testGear() {
 		Car car = new Car();
 		car.perform(Car.Actions.IGNITION);
 		
-		// Starting gear should be 1
-		assertThat(car.getGear(), is(Car.Gears.GEAR_1));
+		// Starting gear should be null
+		assertThat(car.getGear(), is(nullValue()));
 		
 		// Down shift should have no effect
 		car.downShift();
-		assertThat(car.getGear(), is(Car.Gears.GEAR_1));
+		assertThat(car.getGear(), is(nullValue()));
 		
-		// Up shift 5 times
-		for (int i=2; i <= 6; i++ ) {
+		// Up shift 6 times
+		for (int i=1; i <= 6; i++ ) {
 			car.upShift();
 			// car.log.info("Checking gear " + car.getGear() + ": " + i);
 			assertThat(car.getGear().getValue(), is(i));
 		}
 		
-		// Up shift should have no effect
+		// Continued Up shift should stay at the last gear
 		car.upShift();
 		assertThat(car.getGear(), is(Car.Gears.GEAR_6));
 		
@@ -109,6 +138,10 @@ public class CarTest {
 			car.downShift();
 			assertThat(car.getGear().getValue(), is(i));
 		}
+		
+		// Down shift again should go back to null
+		car.downShift();
+		assertThat(car.getGear(), is(nullValue()));
 	}
 	
 	@Test

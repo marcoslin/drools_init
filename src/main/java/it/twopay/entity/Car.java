@@ -17,8 +17,10 @@ public class Car {
 		CHECK_MIRROR("CHECK_MIRROR"),
 		RELEASE_PARKING_BRAKE("RELEASE_PARKING_BRAKE"),
 		FASTEN_SEATBELT("FASTEN_SEATBELT"),
+		FILL_UP_TANK("FILL_UP_TANK"),
 		IGNITION("IGNITION"),
-		END_STRIP("END_STRIP"),
+		START_TRIP("START_TRIP"),
+		END_TRIP("END_STRIP"),
 		PARK("PARK"),
 		TURN_OFF("TURN_OFF"),
 		APPLY_PARKING_BRAKE("APPLY_PARKING_BRAKE"),
@@ -118,12 +120,13 @@ public class Car {
 			setRunning(true);
 			break;
 		case TURN_OFF:
+			// TURN_OFF should include action from END_TRIP
 			setRunning(false);
-			break;
-		case END_STRIP:
+		case END_TRIP:
 			// Pretty abrupt stop, I know...
 			rpm = 1;
-			gear = Gears.GEAR_1;
+			gear = null;
+			break;
 		default:
 			break;
 		}
@@ -132,20 +135,26 @@ public class Car {
 	
 	public void upShift() {
 		if (running) {
-			int currentGear = gear.getValue();
-			if (currentGear < Gears.GEAR_6.getValue()) {
-				gear = gear.getByValue(++currentGear);
-				log.debug("Up shit to gear " + gear);
+			if (gear == null) {
+				gear = Gears.GEAR_1;
+			} else {
+				int currentGear = gear.getValue();
+				if (currentGear < Gears.GEAR_6.getValue()) {
+					gear = gear.getByValue(++currentGear);
+					log.debug("Up shit to gear " + gear);
+				}
 			}
 		}
 	}
 	
 	public void downShift() {
-		if (running) {
+		if (running && gear != null) {
 			int currentGear = gear.getValue();
 			if (currentGear > Gears.GEAR_1.getValue()) {
 				gear = gear.getByValue(--currentGear);
 				log.debug("Down shit to gear " + gear);
+			} else if (currentGear == Gears.GEAR_1.getValue()) {
+				gear = null;
 			}
 		}
 	}
@@ -163,15 +172,15 @@ public class Car {
 	
 	// Property Methods
 	public double getSpeed(Gears gear, double rpm) {
-		double ratio = gearRatio.get(gear);
-		return rpm / ratio;
+		if (gear == null) {
+			return 0.0;
+		} else {
+			double ratio = gearRatio.get(gear);
+			return rpm / ratio;
+		}
 	}
 	public double getSpeed() {
-		if (gear==null) {
-			return 0;
-		} else {
-			return getSpeed(gear, rpm);
-		}
+		return getSpeed(gear, rpm);
 	}
 	private void addAction(Actions action) {
 		actions.add(action);
@@ -181,13 +190,14 @@ public class Car {
 	
 	// Properties
 	private void setRunning(boolean running) {
-		this.running = running;
-		if (running) {
-			gear = Gears.GEAR_1;
-			rpm = 1;
-		} else {
-			gear = null;
-			rpm = 0;
+		if (running != this.running) {
+			this.running = running;
+			gear = null; // Gear always start and end as null
+			if (running) {
+				rpm = 1;
+			} else {
+				rpm = 0;
+			}
 		}
 	}
 	
