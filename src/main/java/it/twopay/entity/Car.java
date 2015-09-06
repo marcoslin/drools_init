@@ -1,110 +1,78 @@
 package it.twopay.entity;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import it.twopay.rules.StatelessRunner;
+import it.twopay.rules.StatefulRunner;
 
+/*
+This class was created as a sample implementation of the drools tool
+
+1. It contains basic rule of the car
+2. 
+
+
+
+ */
 public class Car {
 	public static Logger log = LoggerFactory.getLogger("it.twopay.entity.Car");
 	
-	public enum Actions {
-		CHECK_MIRROR("CHECK_MIRROR"),
-		RELEASE_PARKING_BRAKE("RELEASE_PARKING_BRAKE"),
-		FASTEN_SEATBELT("FASTEN_SEATBELT"),
-		FILL_UP_TANK("FILL_UP_TANK"),
-		IGNITION("IGNITION"),
-		START_TRIP("START_TRIP"),
-		END_TRIP("END_STRIP"),
-		PARK("PARK"),
-		TURN_OFF("TURN_OFF"),
-		APPLY_PARKING_BRAKE("APPLY_PARKING_BRAKE"),
-		RELEASE_SEATBELT("RELEASE_SEATBELT");
-		private String action;
-		private Actions(String action) {
-			this.action = action;
+	public class Action {
+		private CarCommands command;
+		private String state;
+		public Action(CarCommands command, String state) {
+			this.command = command;
+			this.state = state;
 		}
-		public String getAction() {
-			return action;
+		public CarCommands getCommand() {
+			return command;
 		}
-		@Override 
-        public String toString(){ 
-            return action; 
-        }
+		public String getState() {
+			return state;
+		}
+		public void setState(String state) {
+			this.state = state;
+		}
 	}
-	
-	public enum Gears {
-		GEAR_1(1), GEAR_2(2), GEAR_3(3),
-		GEAR_4(4), GEAR_5(5), GEAR_6(6);
-		private Integer gear;
-		private Gears(Integer gear) {
-			this.gear = gear;
-		}
-		public int getValue() {
-			return gear;
-		}
-		public Gears getByValue(int gear) {
-			Gears result = null;
-			switch (gear) {
-			case 1:
-				result = GEAR_1;
-				break;
-			case 2:
-				result = GEAR_2;
-				break;
-			case 3:
-				result = GEAR_3;
-				break;
-			case 4:
-				result = GEAR_4;
-				break;
-			case 5:
-				result = GEAR_5;
-				break;
-			case 6:
-				result = GEAR_6;
-				break;
-			}
-			return result;
-		}
-		@Override 
-        public String toString(){ 
-            return "GEAR_" + gear; 
-        }
-	}
-	
+
 	private static final double ACCELERATION_SEED = 500;
+	private StatefulRunner runner = new StatefulRunner("CarKS");
 	
-	private Map<Gears, Double> gearRatio;
-	private List<Actions> actions;
-	private List<Actions> delayedActions;
+	private Map<CarGears, Double> gearRatio;
+	private List<Action> actions;
+	private List<String> errors;
+	private Set<CarCommands> commands;
 	
-	private Gears gear = null;
+	private CarGears gear = null;
 	private boolean running = false;
 	private double rpm = 0;
 	private String state = "init";
 	private int stateCount = 0;
+	
 
 	private void setup_gear_ratio() {
 		gearRatio = new HashMap<>();
-		
 		// Ratio to convert RPM to KM/H
-		gearRatio.put(Gears.GEAR_1, 94.25);
-		gearRatio.put(Gears.GEAR_2, 63.0625);
-		gearRatio.put(Gears.GEAR_3, 46.0625);
-		gearRatio.put(Gears.GEAR_4, 35.4375);
-		gearRatio.put(Gears.GEAR_5, 26.1875);
-		gearRatio.put(Gears.GEAR_6, 17.6875);
+		gearRatio.put(CarGears.GEAR_1, 94.25);
+		gearRatio.put(CarGears.GEAR_2, 63.0625);
+		gearRatio.put(CarGears.GEAR_3, 46.0625);
+		gearRatio.put(CarGears.GEAR_4, 35.4375);
+		gearRatio.put(CarGears.GEAR_5, 26.1875);
+		gearRatio.put(CarGears.GEAR_6, 17.6875);
 	}
 
 	public Car() {
 		setup_gear_ratio();
 		actions = new ArrayList<>();
+		commands = new HashSet<>();
+		errors = new ArrayList<>();
 	}
 	
 	public void accelerate() {
@@ -113,10 +81,10 @@ public class Car {
 			log.debug("Accelerated to rpm: " + rpm);
 		}
 	}
-	
-	public void perform(Actions action) {
-		switch(action) {
-		case IGNITION:
+
+	public void perform(CarCommands command) {
+		switch(command) {
+		case AUTO_IGNITION:
 			setRunning(true);
 			break;
 		case TURN_OFF:
@@ -130,16 +98,16 @@ public class Car {
 		default:
 			break;
 		}
-		addAction(action);
+		addAction(command);
 	}
 	
 	public void upShift() {
 		if (running) {
 			if (gear == null) {
-				gear = Gears.GEAR_1;
+				gear = CarGears.GEAR_1;
 			} else {
 				int currentGear = gear.getValue();
-				if (currentGear < Gears.GEAR_6.getValue()) {
+				if (currentGear < CarGears.GEAR_6.getValue()) {
 					gear = gear.getByValue(++currentGear);
 					log.debug("Up shit to gear " + gear);
 				}
@@ -150,28 +118,23 @@ public class Car {
 	public void downShift() {
 		if (running && gear != null) {
 			int currentGear = gear.getValue();
-			if (currentGear > Gears.GEAR_1.getValue()) {
+			if (currentGear > CarGears.GEAR_1.getValue()) {
 				gear = gear.getByValue(--currentGear);
 				log.debug("Down shit to gear " + gear);
-			} else if (currentGear == Gears.GEAR_1.getValue()) {
+			} else if (currentGear == CarGears.GEAR_1.getValue()) {
 				gear = null;
 			}
 		}
 	}
 	
 	public void process() {
-		StatelessRunner runner = new StatelessRunner("CarKS");
 		runner.insert(this);
-		runner.process();
+		// Kickoff the rule engine referencing the rules flow
+		runner.process("it.twopay.rules.carflow");
 	}
-	
-	public void addDelayAction(Actions action) {
-		// Action to be performed after END_STRIP
-		delayedActions.add(action);
-	}
-	
+
 	// Property Methods
-	public double getSpeed(Gears gear, double rpm) {
+	public double getSpeed(CarGears gear, double rpm) {
 		if (gear == null) {
 			return 0.0;
 		} else {
@@ -182,22 +145,30 @@ public class Car {
 	public double getSpeed() {
 		return getSpeed(gear, rpm);
 	}
-	private void addAction(Actions action) {
+	private void addAction(CarCommands command) {
+		Action action = new Action(command, "init");
 		actions.add(action);
+		commands.add(command);
+		// Action must be in the working memory
+		runner.insert(action);
 	}
-
-
+	
 	
 	// Properties
 	private void setRunning(boolean running) {
 		if (running != this.running) {
-			this.running = running;
 			gear = null; // Gear always start and end as null
 			if (running) {
-				rpm = 1;
+				if (!commands.contains(CarCommands.FILL_UP_TANK)) {
+					addError("CAN'T START CAR NO GAS");
+					running = false;
+				} else {
+					rpm = 1;
+				}
 			} else {
 				rpm = 0;
 			}
+			this.running = running;
 		}
 	}
 	
@@ -213,17 +184,18 @@ public class Car {
 		this.rpm = rpm;
 	}
 
-	public Gears getGear() {
+	public CarGears getGear() {
 		return gear;
 	}
 	
-	public List<Actions> getActions() {
+	public List<Action> getActions() {
 		return actions;
 	}
-
-	public List<Actions> getEndActions() {
-		return delayedActions;
+	
+	public Set<CarCommands> getCommands() {
+		return commands;
 	}
+	
 
 	public String getState() {
 		return state;
@@ -242,6 +214,15 @@ public class Car {
 		return stateCount;
 	}
 
+	public boolean isError() {
+		return (errors.size() > 0);
+	}
+	public List<String> getErrors() {
+		return errors;
+	}
+	public void addError(String error) {
+		errors.add(error);
+	}
 	
 	
 }

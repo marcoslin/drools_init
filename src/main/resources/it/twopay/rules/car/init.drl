@@ -1,71 +1,81 @@
 package it.twopay.entity;
 
 import java.util.Arrays;
+import java.util.Map;
+
+import it.twopay.entity.Car;
 
 /* =================
 PRE CHECK
 */
-rule "Rule: precheck for FILL_UP_TANK"
+rule "Rule: pre check"
 ruleflow-group "precheck"
 when
-	$car: Car(actions contains Car.Actions.FILL_UP_TANK)
+    $car: Car($actions: actions)
+    $action: Car.Action(
+        command in (CarCommands.CHECK_MIRROR, CarCommands.RELEASE_PARKING_BRAKE, CarCommands.FASTEN_SEATBELT)
+        && state == 'init'
+    ) from $actions
 then
-	$car.log.info("### Rule: precheck for FILL_UP_TANK");
+    $car.log.info("### Rule: precheck for " + $action.getCommand().name());
+    modify($action) {
+        setState("checked")
+    }
+    modify($car) {
+        setState("allow-start")
+    }
+end
+
+/* =================
+PRE CHECK
+*/
+rule "Rule: auto operations"
+ruleflow-group "auto-ops"
+when
+	$car: Car()
+	$action: Car.Action(command == CarCommands.START_TRIP && state == 'init') from $car.actions
+then
+	$car.log.info("### Rule: Rule: auto operation");	
+	modify($action) {
+		setState("checked")
+	}
 	modify($car) {
-		setState("allow-start");
+		perform(CarCommands.FILL_UP_TANK)
 	}
 end
 
 
 /* =================
-OPERATION CHECK
+Post Check
 */
-rule "Rule: opscheck for CHECK_MIRROR"
-ruleflow-group "opscheck"
-when
-	$car: Car( actions contains Car.Actions.CHECK_MIRROR )
-then
-	$car.log.info("### Rule: opscheck for CHECK_MIRROR");
-	modify($car) {
-		setState("allow-start");
-	}
-end
-
-rule "Rule: opscheck for RELEASE_PARKING_BRAKE"
-ruleflow-group "opscheck"
-when
-	$car: Car(actions contains Car.Actions.RELEASE_PARKING_BRAKE)
-then
-	$car.log.info("### Rule: opscheck for RELEASE_PARKING_BRAKE");
-	modify($car) {
-		setState("allow-start");
-	}
-end
-
-rule "Rule: opscheck for FASTEN_SEATBELT"
-ruleflow-group "opscheck"
-when
-	$car: Car(actions contains Car.Actions.FASTEN_SEATBELT)
-then
-	$car.log.info("### Rule: opscheck for FASTEN_SEATBELT");
-	modify($car) {
-		setState("allow-start");
-	}
-end
-
-
-
-/* =================
-START CAR
-*/
-rule "Rule: start car"
-ruleflow-group "operate"
+rule "Rule: report precheck errors"
+ruleflow-group "postcheck"
 when
 	$car: Car(
 		state == "allow-start" &&
-		stateCount == 4
+		stateCount != 3
+	)
+then
+	$car.log.info("### Rule: report precheck errors");
+	for (CarCommands command : Arrays.asList(CarCommands.CHECK_MIRROR, CarCommands.RELEASE_PARKING_BRAKE, CarCommands.FASTEN_SEATBELT)) {
+		if (!$car.getCommands().contains(command)) {
+			String error = "Missing action " + command.name();
+			$car.addError(error);
+		}
+	};
+	modify($car) {
+        setState("error")
+    }
+end
+
+rule "Rule: start car"
+ruleflow-group "postcheck"
+when
+	$car: Car(
+		state == "allow-start" &&
+		stateCount == 3
 	)
 then
 	$car.log.info("### Rule: start car");
-	$car.perform(Car.Actions.IGNITION);
+	$car.perform(CarCommands.AUTO_IGNITION);
 end

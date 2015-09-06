@@ -11,7 +11,7 @@
 	</kbase>
 	
 	<kbase name="CarKB" packages="it.twopay.rules.car">
-	    <ksession name="CarKS" type="stateless"/>
+	    <ksession name="CarKS"/>
 	</kbase>
 
 

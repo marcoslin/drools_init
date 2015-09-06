@@ -37,6 +37,14 @@ public class StatefulRunner extends Runner {
     	fireRules(ksession);
     	cleanUp(ksession);
     }
+    
+    public void process(String name) {
+    	KieSession ksession = startSession();
+    	insertObjects(ksession);
+    	ksession.startProcess(name);
+    	fireRules(ksession);
+    	cleanUp(ksession);
+    }
 
 	public int getFiredRulesCount() {
 		return firedRulesCount;
