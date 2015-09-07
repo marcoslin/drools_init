@@ -8,7 +8,7 @@ import static org.hamcrest.Matchers.*;
 public class CarRuleTest {
 	
 	@Test
-	public void testRunning() {
+	public void testRunning() throws Exception {
 		// Perform all action needed to start a car
 		Car car = new Car();
 		
@@ -29,7 +29,7 @@ public class CarRuleTest {
 	}
 	
 	@Test
-	public void testEndTrip() {
+	public void testEndTrip()  throws Exception {
 		// Perform all action needed to start, travel and stop the car
 		Car car = new Car();
 		
@@ -52,7 +52,7 @@ public class CarRuleTest {
 	
 	
 	@Test
-	public void testAllowStart() {
+	public void testAllowStart()  throws Exception {
 		// Allow the car to be at the allow-start state without actually running
 		Car car = new Car();
 		
@@ -72,7 +72,7 @@ public class CarRuleTest {
 	
 	
 	@Test
-	public void testPreCheck() {
+	public void testPreCheck()  throws Exception {
 		/*
 		Omit START_TRIP so FILL_UP_TANK wont be auto added by ops-auto rules.
 		- This will cause the rule to set the state to "allow-start"
@@ -96,7 +96,7 @@ public class CarRuleTest {
 	
 	
 	@Test
-	public void testPreCheckFailure() {
+	public void testPreCheckFailure() throws Exception {
 		Car car = new Car();
 		
 		assertThat(car.isRunning(), is(false));

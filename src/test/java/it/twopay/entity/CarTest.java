@@ -56,7 +56,7 @@ public class CarTest {
 	}
 	
 	@Test
-	public void testRunning() {
+	public void testRunning()  throws Exception {
 		Car car = new Car();
 		
 		
@@ -65,6 +65,7 @@ public class CarTest {
 		assertThat(car.getSpeed(), is(0.0));
 		
 		// Car after ignition speed should zero
+		car.perform(CarCommands.FILL_UP_TANK);
 		car.perform(CarCommands.AUTO_IGNITION);
 		double initialRpm = car.getRpm();
 		assertThat(initialRpm, is(1.0));
@@ -89,19 +90,20 @@ public class CarTest {
 		// Turn off the car and speed back to zero
 		car.perform(CarCommands.TURN_OFF);
 		assertThat(car.getSpeed(), is(0.0));
-		assertThat(car.getRpm(), is(1.0));
+		assertThat(car.getRpm(), is(0.0));
 		assertThat(car.getGear(), is(is(nullValue())));
 		
 		// Check action list
-		assertThat(car.getCommands(), contains(CarCommands.AUTO_IGNITION, CarCommands.TURN_OFF));
+		assertThat(car.getCommands(), hasItems(CarCommands.AUTO_IGNITION, CarCommands.TURN_OFF, CarCommands.FILL_UP_TANK));
 	}
 	
 	
 	@Test
-	public void testEndTrip() {
+	public void testEndTrip()  throws Exception {
 		Car car = new Car();
 		
 		// Car after ignition speed should be greater than zero
+		car.perform(CarCommands.FILL_UP_TANK);
 		car.perform(CarCommands.AUTO_IGNITION);
 		double initSpeed = car.getSpeed();
 		car.accelerate();
@@ -115,8 +117,9 @@ public class CarTest {
 	
 	
 	@Test
-	public void testGear() {
+	public void testGear()  throws Exception {
 		Car car = new Car();
+		car.perform(CarCommands.FILL_UP_TANK);
 		car.perform(CarCommands.AUTO_IGNITION);
 		
 		// Starting gear should be null

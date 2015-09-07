@@ -13,12 +13,21 @@ import org.slf4j.LoggerFactory;
 import it.twopay.rules.StatefulRunner;
 
 /*
-This class was created as a sample implementation of the drools tool
 
-1. It contains basic rule of the car
-2. 
+This class was created as a sample implementation of the drools.  The idea was
+to have the car object to have minimum of self enforced logic but uses drools
+to implement the operational logic.
 
+Exception Raised:
+* IGNITION requires FILL_UP_TANK command, throws "Can't start the car as FILL_UP_TANK was not performed." exception
+* RPM cannot exceed 7000 or throws "RPM " + new_rpm + " exceeds the maximum allowed " + MAX_RPM exception
 
+Operational Logics
+* On initial start (running = true), gear is set to neutral (null) and rpm is set to 1
+* If car is not running, rpm and speed are both zero and gear is null
+* upShift cannot go beyond GEAR_6 and downShift ends at null gear
+* END_TRIP will set rpm = 1 and gear to null
+* TURN_OFF will set running to false, rpm = 0 and gear to null
 
  */
 public class Car {
@@ -43,6 +52,7 @@ public class Car {
 	}
 
 	private static final double ACCELERATION_SEED = 500;
+	private static final double MAX_RPM = 7000;
 	private StatefulRunner runner = new StatefulRunner("CarKS");
 	
 	private Map<CarGears, Double> gearRatio;
@@ -75,21 +85,25 @@ public class Car {
 		errors = new ArrayList<>();
 	}
 	
-	public void accelerate() {
+	public void accelerate() throws Exception {
 		if (running) {
-			rpm += ACCELERATION_SEED * Math.random();
+			double new_rpm = rpm + ACCELERATION_SEED * Math.random();
+			if (new_rpm > MAX_RPM) {
+				throw new Exception("RPM " + new_rpm + " exceeds the maximum allowed " + MAX_RPM);
+			}
+			rpm = new_rpm;
 			log.debug("Accelerated to rpm: " + rpm);
 		}
 	}
 
-	public void perform(CarCommands command) {
+	public void perform(CarCommands command) throws Exception {
 		switch(command) {
 		case AUTO_IGNITION:
 			setRunning(true);
 			break;
 		case TURN_OFF:
-			// TURN_OFF should include action from END_TRIP
 			setRunning(false);
+			break;
 		case END_TRIP:
 			// Pretty abrupt stop, I know...
 			rpm = 1;
@@ -165,18 +179,19 @@ public class Car {
 	
 	
 	// Properties
-	private void setRunning(boolean running) {
+	private void setRunning(boolean running) throws Exception{
 		if (running != this.running) {
 			gear = null; // Gear always start and end as null
 			if (running) {
 				if (!commands.contains(CarCommands.FILL_UP_TANK)) {
-					addError("CAN'T START CAR NO GAS");
 					running = false;
+					throw new Exception("Can't start the car as FILL_UP_TANK was not performed.");
 				} else {
 					rpm = 1;
 				}
 			} else {
 				rpm = 0;
+				gear = null;
 			}
 			this.running = running;
 		}
